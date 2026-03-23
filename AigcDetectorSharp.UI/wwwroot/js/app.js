@@ -196,15 +196,14 @@ async function uploadFile(file) {
         });
 
         const data = await response.json();
+        document.getElementById('loading').classList.remove('show');
         if (response.ok) {
             document.getElementById('input-text').value = data.text;
-            showLoading(false);
         } else {
-            showLoading(false);
             showToast(data.error || '文件上传失败');
         }
     } catch (err) {
-        showLoading(false);
+        document.getElementById('loading').classList.remove('show');
         showToast('文件上传失败: ' + err.message);
     }
 }
@@ -227,6 +226,9 @@ function clearInput() {
 function showLoading(show) {
     document.getElementById('loading').classList.toggle('show', show);
     document.getElementById('result-section').classList.toggle('show', !show);
+    if (show) {
+        document.getElementById('progress-ring').setAttribute('stroke-dasharray', '0, 264');
+    }
 }
 
 function renderResult(data) {
@@ -268,7 +270,7 @@ function renderResult(data) {
     const container = document.getElementById('chunks-container');
     if (data.chunks.length > 1) {
         container.innerHTML = data.chunks.map((chunk, idx) => {
-            const labelClass = chunk.probability >= 0.5 ? 'human' : 'ai';
+            const labelClass = chunk.label === 'Human' ? 'human' : 'ai';
             const prob = (chunk.probability * 100).toFixed(1);
             return `
                 <div class="chunk ${labelClass}">
@@ -276,7 +278,7 @@ function renderResult(data) {
                         <span>Chunk ${chunk.index}</span>
                         <div>
                             <span style="font-size:12px;color:#737373;margin-right:8px">${prob}%</span>
-                            <span class="chunk-badge ${labelClass}">${chunk.probability >= 0.5 ? 'Human' : 'AI'}</span>
+                            <span class="chunk-badge ${labelClass}">${chunk.label}</span>
                         </div>
                     </div>
                     <div class="chunk-content">${escapeHtml(chunk.text)}</div>
