@@ -15,9 +15,9 @@ AIGC Text Detector Sharp 是一款检测文本是由人类撰写还是 AI 生成
 
 ```
 AIGC_detector_zhv3/
-├── AigcDetectorSharp/          # CLI 工具
 ├── AigcDetectorSharp.Core/     # 核心库
-├── AigcDetectorSharp.UI/       # 桌面/服务器 UI
+├── AigcDetectorSharp.UI/       # 桌面 / WebUI
+├── AigcDetectorSharp/          # CLI 工具
 ├── model_zhv3/                 # 中文模型 (v3)
 ├── model_env3/                 # 英文模型 (v3)
 ├── app.py                      # Python 推理脚本
@@ -28,10 +28,10 @@ AIGC_detector_zhv3/
 
 ### 依赖要求
 
-- .NET 8.0+
-- Python 3.8+ (如使用 Python 推理和转换)
+- .NET 10.0+
+- Python 3.8+ (若使用 Python 推理和转换)
 
-### Python 依赖
+### Python 依赖（若使用）
 
 ```bash
 pip install torch transformers onnxruntime
@@ -103,6 +103,4 @@ MIT License
 ## 参考
 
 - 论文: [Multiscale Positive-Unlabeled Detection of AI-Generated Texts](https://arxiv.org/abs/2305.18149)
-- HuggingFace: [AIGC Text Detector](https://huggingface.co/spaces/yuchuantian/AIGC_text_detector)
-- ModelScope: [AIGC Text Detector](https://modelscope.cn/studios/YuchuanTian/AIGC_text_detector)
 - 原项目: [Github](https://github.com/YuchuanTian/AIGC_text_detector)
