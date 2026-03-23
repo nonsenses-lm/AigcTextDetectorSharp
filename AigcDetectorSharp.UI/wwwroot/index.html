@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIGC Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafafa; color: #171717; min-height: 100vh; display: flex; flex-direction: column; }
+        body.dark { background: #0a0a0a; color: #ededed; }
+        
+        /* Header */
+        .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e5e5e5; background: rgba(250,250,250,0.95); backdrop-filter: blur(8px); }
+        body.dark .header { border-color: #262626; background: rgba(10,10,10,0.95); }
+        .header-inner {
+  max-width: 80rem;
+  margin: 0 20rem;
+  padding: 0 3rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+        .logo { display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: #171717; color: #fff; display: flex; align-items: center; justify-content: center; }
+        body.dark .logo-icon { background: #fff; color: #0a0a0a; }
+        .logo-text { font-size: 14px; font-weight: 600; }
+        
+        /* Model Switch */
+        .model-switch { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
+        .model-label { font-size: 12px; color: #737373; }
+        .model-tabs { display: flex; background: #f5f5f5; border-radius: 8px; padding: 2px; }
+        body.dark .model-tabs { background: #262626; }
+        .model-tab { padding: 6px 12px; font-size: 12px; font-weight: 500; border: none; background: transparent; cursor: pointer; border-radius: 6px; color: #737373; transition: all 0.15s; }
+        .model-tab.active { background: #fff; color: #171717; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        body.dark .model-tab.active { background: #0a0a0a; color: #ededed; }
+        
+        /* Theme Toggle */
+        .theme-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #e5e5e5; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #737373; transition: all 0.15s; }
+        body.dark .theme-btn { border-color: #262626; background: #0a0a0a; }
+        .theme-btn:hover { background: #f5f5f5; color: #171717; }
+        body.dark .theme-btn:hover { background: #262626; color: #ededed; }
+        
+        /* Header Actions */
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        
+        /* Main */
+        .main {
+  max-width: 80rem;
+  margin: 0 20rem;
+  padding: 3rem;
+  flex: 1;
+}
+
+@media (max-width: 75rem) {
+  .main { margin: 0 5rem; }
+  .header-inner { margin: 0 5rem; }
+}
+
+@media (max-width: 50rem) {
+  .main { margin: 0 2rem; }
+  .header-inner { margin: 0 2rem; padding: 0 1rem; }
+  .model-switch { position: static; transform: none; }
+}
+        .hero { text-align: center; margin-bottom: 32px; }
+        .hero h1 { font-size: 24px; font-weight: 700; }
+        .hero p { margin-top: 8px; color: #737373; }
+        
+        /* Input */
+        .input-section { margin-bottom: 24px; }
+        .input-wrapper { border-radius: 12px; background: rgba(0,0,0,0.03); position: relative; }
+        body.dark .input-wrapper { background: rgba(255,255,255,0.05); }
+        #input-text { width: 100%; min-height: 200px; background: transparent; padding: 16px; font-size: 16px; line-height: 1.6; border: none; outline: none; resize: none; font-family: inherit; color: inherit; }
+        #input-text::placeholder { color: #a3a3a3; }
+        
+        /* Actions */
+        .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+        .actions-left { display: flex; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .btn-ghost { background: transparent; color: #737373; }
+        .btn-ghost:hover { background: #f5f5f5; color: #171717; }
+        body.dark .btn-ghost:hover { background: #262626; color: #ededed; }
+        .btn-primary { background: #171717; color: #fff; }
+        body.dark .btn-primary { background: #fff; color: #0a0a0a; }
+        .btn-primary:hover { opacity: 0.9; }
+        
+        /* Loading */
+        .loading { display: none; flex-direction: column; align-items: center; padding: 48px 0; }
+        .loading.show { display: flex; }
+        .spinner { width: 32px; height: 32px; border: 3px solid #e5e5e5; border-top-color: #171717; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        body.dark .spinner { border-color: #262626; border-top-color: #fff; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { margin-top: 16px; font-size: 14px; color: #737373; }
+        
+        /* Result */
+        .result-section { display: none; }
+        .result-section.show { display: block; }
+        .result-card { border-radius: 12px; border: 1px solid #e5e5e5; background: #fff; overflow: hidden; margin-bottom: 24px; }
+        body.dark .result-card { border-color: #262626; background: #0a0a0a; }
+        .result-header { padding: 16px 24px; border-bottom: 1px solid #e5e5e5; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; }
+        body.dark .result-header { border-color: #262626; background: rgba(255,255,255,0.02); }
+        .result-header span { font-size: 14px; color: #737373; }
+        .result-body { padding: 32px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Progress Ring */
+        .progress-container { width: 128px; height: 128px; margin-bottom: 16px; position: relative; }
+        .progress-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .progress-ring-bg { stroke: #e5e5e5; }
+        body.dark .progress-ring-bg { stroke: #262626; }
+        .progress-ring-fill { stroke: #171717; stroke-linecap: round; transition: stroke-dasharray 0.7s ease-out; }
+        body.dark .progress-ring-fill { stroke: #fff; }
+        .progress-ring-fill.human { stroke: #22c55e; }
+        .progress-ring-fill.ai { stroke: #ef4444; }
+        .progress-value { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; }
+        
+        .result-badge { display: inline-block; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; }
+        .result-badge.human { background: rgba(34,197,94,0.1); color: #16a34a; }
+        .result-badge.ai { background: rgba(239,68,68,0.1); color: #dc2626; }
+        .result-desc { margin-top: 12px; font-size: 14px; color: #737373; }
+        
+        /* Chunks */
+        .chunks-title { font-size: 14px; color: #737373; margin-bottom: 12px; }
+        .chunk { border-radius: 8px; border: 1px solid #e5e5e5; margin-bottom: 8px; overflow: hidden; }
+        body.dark .chunk { border-color: #262626; }
+        .chunk-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .chunk-header:hover { background: rgba(0,0,0,0.02); }
+        body.dark .chunk-header:hover { background: rgba(255,255,255,0.02); }
+        .chunk-content { padding: 0 16px 16px; display: none; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .chunk.open .chunk-content { display: block; }
+        .chunk.human { border-left: 3px solid #22c55e; }
+        .chunk.ai { border-left: 3px solid #ef4444; }
+        .chunk-badge { font-size: 12px; padding: 2px 8px; border-radius: 4px; }
+        .chunk-badge.human { background: rgba(34,197,94,0.1); color: #16a34a; }
+        .chunk-badge.ai { background: rgba(239,68,68,0.1); color: #dc2626; }
+        
+        /* History */
+        .history-section { margin-top: 32px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .history-header h3 { font-size: 14px; color: #737373; }
+        .history-table { width: 100%; border-radius: 12px; border: 1px solid #e5e5e5; overflow: hidden; }
+        body.dark .history-table { border-color: #262626; }
+        .history-table table { width: 100%; font-size: 14px; }
+        .history-table th { padding: 12px 16px; text-align: left; background: rgba(0,0,0,0.02); color: #737373; font-weight: 500; border-bottom: 1px solid #e5e5e5; }
+        body.dark .history-table th { background: rgba(255,255,255,0.02); border-color: #262626; }
+        .history-table td { padding: 12px 16px; border-bottom: 1px solid #e5e5e5; }
+        body.dark .history-table td { border-color: #262626; }
+        .history-table tr:last-child td { border-bottom: none; }
+        .history-table tr:hover td { background: rgba(0,0,0,0.02); }
+        body.dark .history-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .history-empty { padding: 48px; text-align: center; color: #a3a3a3; font-size: 14px; }
+        
+        /* Footer */
+        .footer { border-top: 1px solid #e5e5e5; padding: 24px; text-align: center; font-size: 12px; color: #a3a3a3; }
+        body.dark .footer { border-color: #262626; }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 16px; background: #ef4444; color: #fff; border-radius: 8px; font-size: 14px; display: none; }
+        .toast.show { display: block; }
+        
+        /* Drop Zone */
+        .drop-zone { display: none; position: absolute; inset: 0; background: rgba(23,23,23,0.05); border: 2px dashed #171717; border-radius: 12px; align-items: center; justify-content: center; }
+        body.dark .drop-zone { background: rgba(255,255,255,0.05); border-color: #fff; }
+        .drop-zone.show { display: flex; }
+        .drop-zone-text { color: #171717; font-size: 14px; font-weight: 500; }
+        body.dark .drop-zone-text { color: #fff; }
+        
+        /* Badge */
+        .badge { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 4px; background: #f5f5f5; color: #737373; }
+        body.dark .badge { background: #262626; }
+        
+        /* Status dot */
+        .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
+        .status-dot.human { background: #22c55e; }
+        .status-dot.ai { background: #ef4444; }
+        
+        /* Exit button */
+        .exit-btn:hover { background: #fee2e2 !important; color: #dc2626 !important; border-color: #fca5a5 !important; }
+        body.dark .exit-btn:hover { background: #450a0a !important; color: #ef4444 !important; border-color: #7f1d1d !important; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+                        <circle cx="8.5" cy="8.5" r="0.5" fill="currentColor"/>
+                        <circle cx="16" cy="15.5" r="0.5" fill="currentColor"/>
+                        <circle cx="12" cy="12" r="0.5" fill="currentColor"/>
+                    </svg>
+                </div>
+                <span class="logo-text">AIGC Detector</span>
+            </div>
+            
+            <div class="model-switch">
+                <span class="model-label">模型：</span>
+                <div class="model-tabs">
+                    <button class="model-tab active" data-model="zh" onclick="switchModel('zh')">中文</button>
+                    <button class="model-tab" data-model="en" onclick="switchModel('en')">English</button>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="theme-btn" onclick="toggleTheme()" title="切换主题">
+                    <svg id="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/>
+                        <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+                        <path d="M2 12h2"/><path d="M20 12h2"/>
+                        <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                    </svg>
+                    <svg id="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+                    </svg>
+                </button>
+                <button class="theme-btn exit-btn" onclick="exitApp()" title="退出程序">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" x2="9" y1="12" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="hero">
+            <h1>AI 生成文本检测</h1>
+            <p>判断文本是人类撰写还是 AI 生成</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-wrapper">
+                <textarea id="input-text" placeholder="在此输入待检测文本..."></textarea>
+                <div class="drop-zone" id="drop-zone">
+                    <span class="drop-zone-text">拖放文件到此处</span>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="actions-left">
+                    <button class="btn btn-ghost" onclick="clearInput()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                        清空
+                    </button>
+                    <label class="btn btn-ghost" style="cursor:pointer">
+                        <input type="file" style="display:none" accept=".txt,.md,.docx,.pdf" onchange="handleFile(this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>
+                        </svg>
+                        上传
+                    </label>
+                </div>
+                <button class="btn btn-primary" onclick="detect()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    检测
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在分析文本...</p>
+        </div>
+
+        <div class="result-section" id="result-section">
+            <div class="result-card">
+                <div class="result-header">
+                    <span>检测结果</span>
+                    <div>
+                        <span class="badge" id="model-badge">ZH</span>
+                        <span style="margin-left:8px;font-size:12px;color:#a3a3a3" id="timestamp">-</span>
+                    </div>
+                </div>
+                <div class="result-body">
+                    <div class="progress-container">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-bg" stroke-width="8" fill="none" cx="50" cy="50" r="42"/>
+                            <circle class="progress-ring-fill" id="progress-ring" stroke-width="8" fill="none" cx="50" cy="50" r="42" stroke-dasharray="0, 264"/>
+                        </svg>
+                        <div class="progress-value" id="probability">0%</div>
+                    </div>
+                    <span class="result-badge" id="result-badge">-</span>
+                    <p class="result-desc" id="result-desc">-</p>
+                </div>
+            </div>
+
+            <div class="chunks-title">分段详情</div>
+            <div id="chunks-container"></div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h3>历史记录</h3>
+                <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px" onclick="clearHistory()">清空</button>
+            </div>
+            <div class="history-table">
+                <table>
+                    <thead>
+                        <tr><th>时间</th><th>文本</th><th>模型</th><th>结果</th><th style="text-align:right">置信度</th></tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+                <div id="history-empty" class="history-empty">暂无检测记录</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">AIGC Detector - 基于 BERT/RoBERTa 的 AI 生成文本检测工具</footer>
+    
+    <div class="toast" id="toast"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
