@@ -33,16 +33,21 @@ class Program
         if (portArg != null)
             port = int.Parse(portArg.Split('=')[1]);
 
-        await RunServer(port, args);
+        var host = OperatingSystem.IsWindows() ? "127.0.0.1" : "0.0.0.0";
+        var hostArg = args.FirstOrDefault(a => a.StartsWith("--host="));
+        if (hostArg != null)
+            host = hostArg.Split('=')[1];
+
+        await RunServer(host, port, args);
 
         _detectorZh?.Dispose();
         _detectorEn?.Dispose();
     }
 
-    static async Task RunServer(int port, string[]? appArgs = null)
+    static async Task RunServer(string host, int port, string[]? appArgs = null)
     {
         // Set URL via environment variable
-        Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{port}");
+        Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://{host}:{port}");
 
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -207,7 +212,8 @@ class Program
             _ = Task.Delay(500).ContinueWith(_ => _app?.StopAsync());
         });
 
-        Console.WriteLine($"AIGC Detector Server running at http://localhost:{port}");
+        var displayHost = host == "0.0.0.0" ? "localhost" : host;
+        Console.WriteLine($"AIGC Detector Server running at http://{displayHost}:{port}");
         Console.WriteLine("Opening browser...");
 
         // Open browser
@@ -215,7 +221,7 @@ class Program
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = $"http://localhost:{port}",
+                FileName = $"http://{displayHost}:{port}",
                 UseShellExecute = true
             });
         }
