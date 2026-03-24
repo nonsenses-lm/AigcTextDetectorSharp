@@ -162,6 +162,7 @@ function initDragDrop() {
     dropZone.addEventListener('drop', (e) => {
         const file = e.dataTransfer.files[0];
         if (file) {
+            document.getElementById('result-section').classList.remove('show');
             if (isDesktop) {
                 api.send({ action: 'readFile', path: file.path || file.name });
             } else {
@@ -174,6 +175,7 @@ function initDragDrop() {
 function handleFile(input) {
     const file = input.files[0];
     if (file) {
+        document.getElementById('result-section').classList.remove('show');
         if (isDesktop) {
             api.send({ action: 'readFile', path: file.path || file.name });
         } else {
@@ -185,7 +187,9 @@ function handleFile(input) {
 
 // Upload file in server mode
 async function uploadFile(file) {
-    showLoading(true);
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('result-section').classList.remove('show');
+
     const formData = new FormData();
     formData.append('file', file);
 
