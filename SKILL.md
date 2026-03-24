@@ -35,25 +35,6 @@ Detects whether text is human-written or AI-generated using BERT (Chinese) and R
 ./AigcDetectorSharp -f /path/to/file.txt
 ```
 
-## UI Usage
-
-```bash
-# Desktop mode (requires GUI)
-./AigcDetectorSharp.UI
-
-# Server mode (no GUI required)
-./AigcDetectorSharp.UI --server --port=5000
-```
-
-### Server API
-
-```bash
-# Detect text
-curl -X POST http://localhost:5000/api/detect \
-  -H "Content-Type: application/json" \
-  -d '{"text":"your text","model":"zh"}'
-```
-
 ## Options
 
 | Option       | Description                                  |
@@ -61,10 +42,7 @@ curl -X POST http://localhost:5000/api/detect \
 | `-m zh`      | Chinese model (default)                      |
 | `-m en`      | English model                                |
 | `-f <file>`  | Read text from file (.txt, .md, .docx, .pdf) |
-| `-p <dir>`   | Custom model directory                       |
 | `--echo`     | Echo source text                             |
-| `--server`   | Run as web server                            |
-| `--port=<n>` | Server port (default: 5000)                  |
 
 ## Output Format
 
