@@ -12,8 +12,9 @@ public class DetectorService : IDisposable
     private readonly InferenceSession _session;
     private readonly Tokenizer _tokenizer;
     private readonly bool _isEnglish;
+    private readonly string[] _separators;
 
-    public DetectorService(string modelDir)
+    public DetectorService(string modelDir, string separator = "\n")
     {
         var onnxFile = Directory.GetFiles(modelDir, "*.onnx").First();
         var tokenizerFile = Path.Combine(modelDir, "tokenizer_export", "tokenizer.json");
@@ -25,6 +26,7 @@ public class DetectorService : IDisposable
         _session = new InferenceSession(onnxFile, sessionOptions);
         _tokenizer = new Tokenizer(vocabPath: tokenizerFile);
         _isEnglish = modelDir.Contains("en");
+        _separators = separator.Split('|');
     }
 
     public string ModelName => _isEnglish ? "en" : "zh";
@@ -45,8 +47,8 @@ public class DetectorService : IDisposable
             });
         }
 
-        // 按行切分
-        var lines = text.Split('\n');
+        // 按分隔符切分
+        var lines = text.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
         var chunks = new List<string>();
         var currentChunk = new StringBuilder();
         int currentTokens = 0;
