@@ -17,6 +17,9 @@ class Program
     [Option("--echo", "Echo source text", CommandOptionType.NoValue)]
     public bool Echo { get; set; }
 
+    [Option("-s|--separator", "Chunk separator (default: \\n, use | for multiple)", CommandOptionType.SingleValue)]
+    public string? Separator { get; set; }
+
     [Argument(0, "text", "Text to detect (optional)")]
     public string? Text { get; set; }
 
@@ -26,8 +29,9 @@ class Program
     {
         var baseDir = AppContext.BaseDirectory;
         var modelDir = GetModelDir(baseDir);
+        var separator = Separator ?? "\n";
 
-        using var detector = new DetectorService(modelDir);
+        using var detector = new DetectorService(modelDir, separator);
 
         string? text = null;
         if (FilePath != null)
