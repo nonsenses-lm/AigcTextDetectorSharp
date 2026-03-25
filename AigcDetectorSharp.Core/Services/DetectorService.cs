@@ -53,9 +53,10 @@ public class DetectorService : IDisposable
         var currentChunk = new StringBuilder();
         int currentTokens = 0;
 
-        foreach (var line in lines)
+        foreach (var rawLine in lines)
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            var line = rawLine.Trim();
+            if (string.IsNullOrEmpty(line)) continue;
             var lineTokens = _tokenizer.Encode(line).Count();
 
             // 行超过MaxTokens，需要进一步拆分
@@ -64,29 +65,31 @@ public class DetectorService : IDisposable
                 // 先保存当前chunk
                 if (currentChunk.Length > 0)
                 {
-                    chunks.Add(currentChunk.ToString());
+                    chunks.Add(currentChunk.ToString().Trim());
                     currentChunk.Clear();
                     currentTokens = 0;
                 }
                 // 按句号拆分长行
                 foreach (var subChunk in SplitLongLine(line))
                 {
-                    chunks.Add(subChunk);
+                    chunks.Add(subChunk.Trim());
                 }
                 continue;
             }
 
             if (currentTokens + lineTokens > MaxTokens && currentChunk.Length > 0)
             {
-                chunks.Add(currentChunk.ToString());
+                chunks.Add(currentChunk.ToString().Trim());
                 currentChunk.Clear();
                 currentTokens = 0;
             }
-            currentChunk.AppendLine(line);
+            if (currentChunk.Length > 0)
+                currentChunk.AppendLine();
+            currentChunk.Append(line);
             currentTokens += lineTokens;
         }
         if (currentChunk.Length > 0)
-            chunks.Add(currentChunk.ToString());
+            chunks.Add(currentChunk.ToString().Trim());
 
         // 预测各chunk
         var humanProbs = new List<float>();
