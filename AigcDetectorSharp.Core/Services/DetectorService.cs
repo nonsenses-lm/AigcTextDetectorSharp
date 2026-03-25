@@ -55,6 +55,25 @@ public class DetectorService : IDisposable
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
             var lineTokens = _tokenizer.Encode(line).Count();
+
+            // 行超过MaxTokens，需要进一步拆分
+            if (lineTokens > MaxTokens)
+            {
+                // 先保存当前chunk
+                if (currentChunk.Length > 0)
+                {
+                    chunks.Add(currentChunk.ToString());
+                    currentChunk.Clear();
+                    currentTokens = 0;
+                }
+                // 按句号拆分长行
+                foreach (var subChunk in SplitLongLine(line))
+                {
+                    chunks.Add(subChunk);
+                }
+                continue;
+            }
+
             if (currentTokens + lineTokens > MaxTokens && currentChunk.Length > 0)
             {
                 chunks.Add(currentChunk.ToString());
@@ -119,6 +138,89 @@ public class DetectorService : IDisposable
         var exps = logits.Select(x => Math.Exp(x - maxLogit)).ToArray();
         var sumExps = exps.Sum();
         return exps.Select(x => (float)(x / sumExps)).ToArray();
+    }
+
+    private List<string> SplitLongLine(string line)
+    {
+        var result = new List<string>();
+
+        // 按中英文句号分割
+        var sentences = new List<string>();
+        var current = new StringBuilder();
+
+        for (int i = 0; i < line.Length; i++)
+        {
+            current.Append(line[i]);
+            if (line[i] == '。' || line[i] == '.')
+            {
+                var sentence = current.ToString();
+                if (!string.IsNullOrWhiteSpace(sentence))
+                    sentences.Add(sentence);
+                current.Clear();
+            }
+        }
+        if (current.Length > 0)
+            sentences.Add(current.ToString());
+
+        // 如果没有句号，直接按token拆分
+        if (sentences.Count == 1 && _tokenizer.Encode(line).Count() > MaxTokens)
+        {
+            return SplitByTokens(line);
+        }
+
+        // 合并句子，确保不超过MaxTokens
+        var chunk = new StringBuilder();
+        int chunkTokens = 0;
+
+        foreach (var sentence in sentences)
+        {
+            var sentenceTokens = _tokenizer.Encode(sentence).Count();
+
+            // 单句超过MaxTokens，进一步拆分
+            if (sentenceTokens > MaxTokens)
+            {
+                if (chunk.Length > 0)
+                {
+                    result.Add(chunk.ToString());
+                    chunk.Clear();
+                    chunkTokens = 0;
+                }
+                result.AddRange(SplitByTokens(sentence));
+                continue;
+            }
+
+            if (chunkTokens + sentenceTokens > MaxTokens && chunk.Length > 0)
+            {
+                result.Add(chunk.ToString());
+                chunk.Clear();
+                chunkTokens = 0;
+            }
+
+            chunk.Append(sentence);
+            chunkTokens += sentenceTokens;
+        }
+
+        if (chunk.Length > 0)
+            result.Add(chunk.ToString());
+
+        return result;
+    }
+
+    private List<string> SplitByTokens(string text)
+    {
+        var result = new List<string>();
+        var tokens = _tokenizer.Encode(text).ToArray();
+
+        int start = 0;
+        while (start < tokens.Length)
+        {
+            int end = Math.Min(start + MaxTokens, tokens.Length);
+            var chunkText = _tokenizer.Decode(tokens.Skip(start).Take(end - start).ToArray());
+            result.Add(chunkText);
+            start = end;
+        }
+
+        return result;
     }
 
     public void Dispose()
