@@ -7,12 +7,13 @@
     <link href="https://fonts.bunny.net/css2?family=Doto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafafa; color: #171717; min-height: 100vh; display: flex; flex-direction: column; }
-        body.dark { background: #0a0a0a; color: #ededed; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafafa; color: #171717; min-height: 100vh; display: flex; flex-direction: column; overflow-y: scroll; scrollbar-width: thin; scrollbar-color: #d4d4d4 transparent; }
+        body.dark { background: #0a0a0a; color: #ededed; scrollbar-color: #404040 transparent; }
         
         /* Header */
-        .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e5e5e5; background: linear-gradient(90deg, rgba(247, 149, 51, 0.15) 0, rgba(243, 112, 85, 0.15) 15%, rgba(239, 78, 123, 0.15) 30%, rgba(161, 102, 171, 0.15) 44%, rgba(80, 115, 184, 0.15) 58%, rgba(16, 152, 173, 0.15) 72%, rgba(7, 179, 155, 0.15) 86%, rgba(109, 186, 130, 0.15) 100%), rgba(250,250,250,0.95); backdrop-filter: blur(8px); }
-        body.dark .header { border-color: #262626; background: linear-gradient(90deg, rgba(247, 149, 51, 0.2) 0, rgba(243, 112, 85, 0.2) 15%, rgba(239, 78, 123, 0.2) 30%, rgba(161, 102, 171, 0.2) 44%, rgba(80, 115, 184, 0.2) 58%, rgba(16, 152, 173, 0.2) 72%, rgba(7, 179, 155, 0.2) 86%, rgba(109, 186, 130, 0.2) 100%), rgba(10,10,10,0.95); }
+        .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e5e5e5; background: linear-gradient(90deg, rgba(0,229,255,0.15) 0, rgba(0,206,209,0.15) 50%, rgba(0,139,139,0.15) 100%), rgba(250,250,250,0.95); backdrop-filter: blur(8px); }
+        body.dark .header { border-color: #262626; background: linear-gradient(90deg, rgba(0,229,255,0.2) 0, rgba(0,206,209,0.2) 50%, rgba(0,139,139,0.2) 100%), rgba(10,10,10,0.95); }
         .header-inner {
   max-width: 80rem;
   margin: 0 20rem;
@@ -49,9 +50,9 @@
         .main {
   max-width: 80rem;
   margin: 0 20rem;
-  padding: 3rem;
+  padding: 1rem 3rem;
   flex: 1;
-}
+ }
 
 @media (max-width: 75rem) {
   .main { margin: 0 5rem; }
@@ -63,15 +64,18 @@
   .header-inner { margin: 0 2rem; padding: 0 1rem; }
   .model-switch { position: static; transform: none; }
 }
-        .hero { text-align: center; margin-bottom: 32px; }
-        .hero h1 { font-size: 24px; font-weight: 700; }
+        .hero { text-align: center; margin-bottom: 16px; }
+        .hero h1 { font-size: 24px; font-weight: 700; margin-top: 16px; }
         .hero p { margin-top: 8px; color: #737373; }
         
         /* Input */
         .input-section { margin-bottom: 24px; }
         .input-wrapper { border-radius: 12px; background: rgba(0,0,0,0.03); position: relative; }
         body.dark .input-wrapper { background: rgba(255,255,255,0.05); }
-        #input-text { width: 100%; min-height: 200px; background: transparent; padding: 16px; font-size: 16px; line-height: 1.6; border: none; outline: none; resize: none; font-family: inherit; color: inherit; }
+        #input-text { width: 100%; min-height: 200px; background: transparent; padding: 16px; font-size: 16px; line-height: 1.6; border: none; outline: none; resize: none; font-family: inherit; color: inherit; overflow-y: scroll; scrollbar-width: thin; }
+        #input-text::-webkit-scrollbar { width: 4px; }
+        #input-text::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 2px; }
+        body.dark #input-text::-webkit-scrollbar-thumb { background: #404040; }
         #input-text::placeholder { color: #a3a3a3; }
         
         /* Actions */
@@ -81,8 +85,8 @@
         .btn-ghost { background: transparent; color: #737373; }
         .btn-ghost:hover { background: #f5f5f5; color: #171717; }
         body.dark .btn-ghost:hover { background: #262626; color: #ededed; }
-        .btn-primary { background: linear-gradient(135deg, rgba(247, 149, 51, 0.7) 0, rgba(243, 112, 85, 0.7) 15%, rgba(239, 78, 123, 0.7) 30%, rgba(161, 102, 171, 0.7) 44%, rgba(80, 115, 184, 0.7) 58%, rgba(16, 152, 173, 0.7) 72%, rgba(7, 179, 155, 0.7) 86%, rgba(109, 186, 130, 0.7) 100%); color: #fff; }
-        body.dark .btn-primary { background: linear-gradient(135deg, rgba(247, 149, 51, 0.7) 0, rgba(243, 112, 85, 0.7) 15%, rgba(239, 78, 123, 0.7) 30%, rgba(161, 102, 171, 0.7) 44%, rgba(80, 115, 184, 0.7) 58%, rgba(16, 152, 173, 0.7) 72%, rgba(7, 179, 155, 0.7) 86%, rgba(109, 186, 130, 0.7) 100%); color: #fff; }
+        .btn-primary { background: linear-gradient(135deg, rgba(0,210,210,0.7) 0, rgba(0,190,190,0.7) 50%, rgba(0,170,170,0.7) 100%); color: #fff; }
+        body.dark .btn-primary { background: linear-gradient(135deg, rgba(0,210,210,0.7) 0, rgba(0,190,190,0.7) 50%, rgba(0,170,170,0.7) 100%); color: #fff; }
         .btn-primary:hover { opacity: 0.85; }
         
         /* Loading */
