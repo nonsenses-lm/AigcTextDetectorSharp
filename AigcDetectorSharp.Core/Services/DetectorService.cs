@@ -2,6 +2,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using Tokenizers.DotNet;
 using AigcDetectorSharp.Core.Models;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace AigcDetectorSharp.Core.Services;
@@ -14,14 +15,22 @@ public class DetectorService : IDisposable
     private readonly bool _isEnglish;
     private readonly string[] _separators;
 
-    public DetectorService(string modelDir, string separator = "\n")
+    public DetectorService(string modelDir, string separator = "\n", int? intraOpNumThreads = null, int? interOpNumThreads = null)
     {
         var onnxFile = Directory.GetFiles(modelDir, "*.onnx").First();
         var tokenizerFile = Path.Combine(modelDir, "tokenizer_export", "tokenizer.json");
 
         var sessionOptions = new SessionOptions();
-        sessionOptions.IntraOpNumThreads = 1;
-        sessionOptions.InterOpNumThreads = 1;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            sessionOptions.IntraOpNumThreads = intraOpNumThreads ?? Environment.ProcessorCount - 1;
+            sessionOptions.InterOpNumThreads = interOpNumThreads ?? 1;
+        }
+        else
+        {
+            sessionOptions.IntraOpNumThreads = intraOpNumThreads ?? 1;
+            sessionOptions.InterOpNumThreads = interOpNumThreads ?? 1;
+        }
 
         _session = new InferenceSession(onnxFile, sessionOptions);
         _tokenizer = new Tokenizer(vocabPath: tokenizerFile);
