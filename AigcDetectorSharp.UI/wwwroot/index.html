@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIGC Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafafa; color: #171717; min-height: 100vh; display: flex; flex-direction: column; }
         body.dark { background: #0a0a0a; color: #ededed; }
         
         /* Header */
-        .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e5e5e5; background: rgba(250,250,250,0.95); backdrop-filter: blur(8px); }
-        body.dark .header { border-color: #262626; background: rgba(10,10,10,0.95); }
+        .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e5e5e5; background: linear-gradient(90deg, rgba(247, 149, 51, 0.15) 0, rgba(243, 112, 85, 0.15) 15%, rgba(239, 78, 123, 0.15) 30%, rgba(161, 102, 171, 0.15) 44%, rgba(80, 115, 184, 0.15) 58%, rgba(16, 152, 173, 0.15) 72%, rgba(7, 179, 155, 0.15) 86%, rgba(109, 186, 130, 0.15) 100%), rgba(250,250,250,0.95); backdrop-filter: blur(8px); }
+        body.dark .header { border-color: #262626; background: linear-gradient(90deg, rgba(247, 149, 51, 0.2) 0, rgba(243, 112, 85, 0.2) 15%, rgba(239, 78, 123, 0.2) 30%, rgba(161, 102, 171, 0.2) 44%, rgba(80, 115, 184, 0.2) 58%, rgba(16, 152, 173, 0.2) 72%, rgba(7, 179, 155, 0.2) 86%, rgba(109, 186, 130, 0.2) 100%), rgba(10,10,10,0.95); }
         .header-inner {
   max-width: 80rem;
   margin: 0 20rem;
@@ -22,10 +25,9 @@
   justify-content: space-between;
   position: relative;
 }
-        .logo { display: flex; align-items: center; gap: 8px; }
-        .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: #171717; color: #fff; display: flex; align-items: center; justify-content: center; }
-        body.dark .logo-icon { background: #fff; color: #0a0a0a; }
-        .logo-text { font-size: 14px; font-weight: 600; }
+        .logo { display: flex; flex-direction: column; line-height: 1; font-family: 'Doto', sans-serif; }
+        .logo-text-main { font-size: 16px; font-weight: 700; }
+        .logo-text-sub { font-size: 12px; font-weight: 600; }
         
         /* Model Switch */
         .model-switch { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
@@ -81,9 +83,9 @@
         .btn-ghost { background: transparent; color: #737373; }
         .btn-ghost:hover { background: #f5f5f5; color: #171717; }
         body.dark .btn-ghost:hover { background: #262626; color: #ededed; }
-        .btn-primary { background: #171717; color: #fff; }
-        body.dark .btn-primary { background: #fff; color: #0a0a0a; }
-        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary { background: linear-gradient(135deg, rgba(247, 149, 51, 0.7) 0, rgba(243, 112, 85, 0.7) 15%, rgba(239, 78, 123, 0.7) 30%, rgba(161, 102, 171, 0.7) 44%, rgba(80, 115, 184, 0.7) 58%, rgba(16, 152, 173, 0.7) 72%, rgba(7, 179, 155, 0.7) 86%, rgba(109, 186, 130, 0.7) 100%); color: #fff; }
+        body.dark .btn-primary { background: linear-gradient(135deg, rgba(247, 149, 51, 0.7) 0, rgba(243, 112, 85, 0.7) 15%, rgba(239, 78, 123, 0.7) 30%, rgba(161, 102, 171, 0.7) 44%, rgba(80, 115, 184, 0.7) 58%, rgba(16, 152, 173, 0.7) 72%, rgba(7, 179, 155, 0.7) 86%, rgba(109, 186, 130, 0.7) 100%); color: #fff; }
+        .btn-primary:hover { opacity: 0.85; }
         
         /* Loading */
         .loading { display: none; flex-direction: column; align-items: center; padding: 48px 0; }
@@ -183,15 +185,9 @@
     <header class="header">
         <div class="header-inner">
             <div class="logo">
-                <div class="logo-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
-                        <circle cx="8.5" cy="8.5" r="0.5" fill="currentColor"/>
-                        <circle cx="16" cy="15.5" r="0.5" fill="currentColor"/>
-                        <circle cx="12" cy="12" r="0.5" fill="currentColor"/>
-                    </svg>
-                </div>
-                <span class="logo-text">AIGC Detector</span>
+                <span class="logo-text-main">AIGC Text Detector</span>
+                <br>
+                <span class="logo-text-sub">by nonSenses</span>
             </div>
             
             <div class="model-switch">
