@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <!--<OutputType>Exe</OutputType>-->
     <OutputType>WinExe</OutputType>
@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AigcDetectorSharp.Core\AigcDetectorSharp.Core.csproj" />
-      <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2739.15" />
+      <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3856.49" />
   </ItemGroup>
 
   <ItemGroup>
