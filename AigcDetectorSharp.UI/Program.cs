@@ -1,12 +1,6 @@
 using System.Diagnostics;
-using System.Drawing;
-using System.Text.Json;
 using AigcDetectorSharp.Core.Services;
-using AigcDetectorSharp.Core.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Web.WebView2.WinForms;
 
 namespace AigcDetectorSharp.UI;
 
@@ -16,17 +10,11 @@ class Program
     private static DetectorService? _detectorEn;
     private static WebApplication? _app;
 
-    static async Task Main(string[] args)
+    [STAThread]
+    static void Main(string[] args)
     {
         var baseDir = AppContext.BaseDirectory;
         InitDetectors(baseDir);
-
-        // Default to server mode, use --desktop for desktop mode
-        if (args.Contains("--desktop"))
-        {
-            Console.WriteLine("Desktop mode is not supported. Use server mode instead.");
-            return;
-        }
 
         var port = 5000;
         var portArg = args.FirstOrDefault(a => a.StartsWith("--port="));
@@ -38,7 +26,54 @@ class Program
         if (hostArg != null)
             host = hostArg.Split('=')[1];
 
-        await RunServer(host, port, args);
+        Task.Run(() => RunServer(host, port, args));
+        var displayHost = host == "0.0.0.0" ? "localhost" : host;
+        Console.WriteLine($"AIGC Detector Server running at http://{displayHost}:{port}");
+
+        if (!args.Contains("--server"))
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            var form = new Form
+            {
+                Text = "AIGC Detector - nonSenses ÎÞ¼£",
+                Width = 1024,
+                Height = 768,
+                Icon = new Icon("./wwwroot/favicon.ico")
+            };
+
+            var webView = new WebView2
+            {
+                Dock = DockStyle.Fill
+            };
+            form.Controls.Add(webView);
+
+            form.Load += async (sender, args) =>
+            {
+                await webView.EnsureCoreWebView2Async(null);
+                webView.CoreWebView2.Navigate($"http://127.0.0.1:{port}");
+            };
+
+            Application.Run(form);
+        }
+        else
+        {
+            try
+            {
+                Console.WriteLine("Opening browser...");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = $"http://{displayHost}:{port}",
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                Console.WriteLine("Could not open browser automatically. Please open the URL manually.");
+            }
+
+        }
 
         _detectorZh?.Dispose();
         _detectorEn?.Dispose();
@@ -46,7 +81,6 @@ class Program
 
     static async Task RunServer(string host, int port, string[]? appArgs = null)
     {
-        // Set URL via environment variable
         Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://{host}:{port}");
 
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -209,26 +243,12 @@ class Program
             await context.Response.WriteAsJsonAsync(new { message = "Shutting down..." });
             
             // Stop the server after sending response
-            _ = Task.Delay(500).ContinueWith(_ => _app?.StopAsync());
-        });
-
-        var displayHost = host == "0.0.0.0" ? "localhost" : host;
-        Console.WriteLine($"AIGC Detector Server running at http://{displayHost}:{port}");
-        Console.WriteLine("Opening browser...");
-
-        // Open browser
-        try
-        {
-            Process.Start(new ProcessStartInfo
+            _ = Task.Delay(500).ContinueWith(_ =>
             {
-                FileName = $"http://{displayHost}:{port}",
-                UseShellExecute = true
+                _app?.StopAsync();
+                Environment.Exit(0);
             });
-        }
-        catch
-        {
-            Console.WriteLine("Could not open browser automatically. Please open the URL manually.");
-        }
+        });
 
         await _app.RunAsync();
     }
